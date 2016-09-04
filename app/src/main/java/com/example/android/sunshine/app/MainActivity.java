@@ -36,12 +36,6 @@ import com.example.android.sunshine.app.sync.SunshineSyncAdapter;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.DataApi;
-import com.google.android.gms.wearable.PutDataMapRequest;
-import com.google.android.gms.wearable.PutDataRequest;
-import com.google.android.gms.wearable.Wearable;
 
 public class MainActivity extends AppCompatActivity implements ForecastFragment.Callback {
 
@@ -118,43 +112,6 @@ public class MainActivity extends AppCompatActivity implements ForecastFragment.
                 startService(intent);
             }
         }
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
-                    @Override
-                    public void onConnected(Bundle connectionHint) {
-                        Log.d(TAG, "onConnected: " + connectionHint);
-                        // Now you can use the Data Layer API
-                        PutDataMapRequest putDataMapReq = PutDataMapRequest.create("/count");
-                        putDataMapReq.getDataMap().putInt(COUNT_KEY, count++);
-                        PutDataRequest putDataReq = putDataMapReq.asPutDataRequest();
-                        PendingResult<DataApi.DataItemResult> pendingResult =
-                                Wearable.DataApi.putDataItem(mGoogleApiClient, putDataReq);
-                        pendingResult.setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                            @Override
-                            public void onResult(final DataApi.DataItemResult result) {
-                                if (result.getStatus().isSuccess()) {
-                                    Log.d(TAG, "Data item set: " + result.getDataItem().getUri());
-                                }
-                            }
-                        });
-
-                    }
-
-                    @Override
-                    public void onConnectionSuspended(int cause) {
-                        Log.d(TAG, "onConnectionSuspended: " + cause);
-                    }
-                })
-                .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(ConnectionResult result) {
-                        Log.d(TAG, "onConnectionFailed: " + result);
-                    }
-                })
-                // Request access only to the Wearable API
-                .addApi(Wearable.API)
-                .build();
-        mGoogleApiClient.connect();
     }
 
     @Override
