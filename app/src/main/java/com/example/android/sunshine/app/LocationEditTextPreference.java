@@ -22,6 +22,7 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
@@ -84,7 +85,7 @@ public class LocationEditTextPreference extends EditTextPreference {
                 Activity settingsActivity = (SettingsActivity) context;
                 try {
                     settingsActivity.startActivityForResult(
-                            builder.build(context), SettingsActivity.PLACE_PICKER_REQUEST);
+                            builder.build((AppCompatActivity) context), SettingsActivity.PLACE_PICKER_REQUEST);
 
                 } catch (GooglePlayServicesNotAvailableException
                         | GooglePlayServicesRepairableException e) {

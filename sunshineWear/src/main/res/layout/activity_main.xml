@@ -6,19 +6,36 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/blue_background"
-    tools:context="sakethkaparthi.sunshine.MainActivity"
+    tools:context=".Sunshine"
     tools:deviceIds="wear">
 
-    <TextView
+    <LinearLayout
         android:id="@+id/clock"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="50dp"
-        android:fontFamily="sans-serif"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold" />
+        android:gravity="center">
+
+        <TextView
+            android:id="@+id/clock_hours"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="24:" />
+
+        <TextView
+            android:id="@+id/clock_minutes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-light"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            tools:text="11" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/date"
@@ -30,4 +47,14 @@
         android:textColor="@android:color/white"
         tools:text="something" />
 
+    <TextView
+        android:id="@+id/count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/date"
+        android:layout_centerHorizontal="true"
+        android:fontFamily="sans-serif-light"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        tools:text="something" />
 </RelativeLayout>
