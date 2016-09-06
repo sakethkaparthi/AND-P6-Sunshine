@@ -12,7 +12,6 @@ import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.DataEvent;
 import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataMapItem;
-import com.google.android.gms.wearable.MessageApi;
 import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
 import com.google.android.gms.wearable.Wearable;
@@ -97,10 +96,12 @@ public class Sunshine extends WearableActivity {
                             public void run() {
                                 NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
                                 for (final Node node : nodes.getNodes()) {
-                                    MessageApi.SendMessageResult messageResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/run_sync", null).await();
+                                   /* MessageApi.SendMessageResult messageResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/run_sync", null).await();
                                     if (messageResult.getStatus().isSuccess()) {
                                         Log.d("Sent to", node.getDisplayName());
-                                    }
+                                    }*/
+                                    Log.d(TAG, "Sending message to node:" + node.getDisplayName());
+                                    Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/run_sync", null);
                                 }
                             }
                         }).start();

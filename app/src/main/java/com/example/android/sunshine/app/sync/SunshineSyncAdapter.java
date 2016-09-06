@@ -669,6 +669,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     }
 
     private void sendToWear(Context context) {
+        Log.d("Sync Adapter", "sendToWear: ");
         String locationQuery = Utility.getPreferredLocation(context);
 
         Uri weatherUri = WeatherContract.WeatherEntry.buildWeatherLocationWithDate(locationQuery, System.currentTimeMillis());
