@@ -27,6 +27,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.wearable.watchface.CanvasWatchFaceService;
@@ -63,13 +64,17 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
     private static final String TAG = "SweepWatchFaceService";
 
+    private static final Typeface BOLD_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD);
+    private static final Typeface NORMAL_TYPEFACE =
+            Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL);
+
     @Override
     public Engine onCreateEngine() {
         return new Engine();
     }
 
     private class Engine extends CanvasWatchFaceService.Engine {
-
         private static final String WEATHER_PATH = "/weather";
         private static final String WEATHER_TEMP_HIGH_KEY = "weather_temp_high_key";
         private static final String WEATHER_TEMP_LOW_KEY = "weather_temp_low_key";
@@ -319,13 +324,10 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
             Resources resources = SunshineWatchFaceService.this.getResources();
-            boolean isRound = insets.isRound();
             float textSizeMax = resources.getDimension(R.dimen.digital_text_size_round);
             float textSizeMin = resources.getDimensionPixelSize(R.dimen.digital_text_size);
-            mMaxTempPaint = new Paint();
-            mMinTempPaint = new Paint();
-            mMaxTempPaint.setColor(Color.WHITE);
-            mMinTempPaint.setColor(Color.WHITE);
+            mMaxTempPaint = createTextPaint(Color.WHITE, BOLD_TYPEFACE);
+            mMinTempPaint = createTextPaint(Color.WHITE, NORMAL_TYPEFACE);
             mMaxTempPaint.setTextSize(textSizeMax);
             mMinTempPaint.setTextSize(textSizeMin);
             mXOffset = mWidth - 2 * (mMaxTempPaint.measureText("12", 0, 2));
@@ -472,7 +474,7 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             canvas.drawText(maxString, mXOffset, mYOffsetMax, mMaxTempPaint);
             canvas.drawText(minString, mXOffset, mYOffsetMin, mMinTempPaint);
             if (weatherIcon != null)
-                canvas.drawBitmap(weatherIcon, weatherIcon.getWidth()/2, mCenterY - (weatherIcon.getHeight() / 2), null);
+                canvas.drawBitmap(weatherIcon, weatherIcon.getWidth() / 2, mCenterY - (weatherIcon.getHeight() / 2), null);
             /*else if (mAmbient) {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0, 0, mBackgroundPaint);
             } else {
@@ -599,6 +601,14 @@ public class SunshineWatchFaceService extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = false;
             SunshineWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
+        }
+
+        private Paint createTextPaint(int defaultInteractiveColor, Typeface typeface) {
+            Paint paint = new Paint();
+            paint.setColor(defaultInteractiveColor);
+            paint.setTypeface(typeface);
+            paint.setAntiAlias(true);
+            return paint;
         }
     }
 }

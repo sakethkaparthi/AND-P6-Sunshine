@@ -17,7 +17,7 @@
             android:required="false" />
 
         <service
-            android:name=".SweepWatchFaceService"
+            android:name=".SunshineWatchFaceService"
             android:label="@string/sweep_name"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data
