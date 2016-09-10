@@ -2,4 +2,6 @@
     <string name="app_name">Sunshine</string>
     <string name="title_activity_main">Sunshine</string>
     <string name="hello_world">Hello World!</string>
+    <string name="watchface_name">Sunshine</string>
+    <string name="sweep_name">SunshineWatchFace</string>
 </resources>
