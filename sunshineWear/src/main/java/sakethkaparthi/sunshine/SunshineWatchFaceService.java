@@ -59,7 +59,7 @@ import java.util.TimeZone;
  * <p>
  * {@link AnalogWatchFaceService} is similar but has a ticking second hand.
  */
-public class SweepWatchFaceService extends CanvasWatchFaceService {
+public class SunshineWatchFaceService extends CanvasWatchFaceService {
 
     private static final String TAG = "SweepWatchFaceService";
 
@@ -193,13 +193,13 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
             }
             super.onCreate(holder);
 
-            setWatchFaceStyle(new WatchFaceStyle.Builder(SweepWatchFaceService.this)
+            setWatchFaceStyle(new WatchFaceStyle.Builder(SunshineWatchFaceService.this)
                     .setCardPeekMode(WatchFaceStyle.PEEK_MODE_SHORT)
                     .setBackgroundVisibility(WatchFaceStyle.BACKGROUND_VISIBILITY_INTERRUPTIVE)
                     .setShowSystemUiTime(false)
                     .build());
 
-            Resources resources = SweepWatchFaceService.this.getResources();
+            Resources resources = SunshineWatchFaceService.this.getResources();
             mLineHeight = resources.getDimension(R.dimen.digital_line_height);
             maxString = "NA";
             minString = "NA";
@@ -318,7 +318,7 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
         @Override
         public void onApplyWindowInsets(WindowInsets insets) {
             super.onApplyWindowInsets(insets);
-            Resources resources = SweepWatchFaceService.this.getResources();
+            Resources resources = SunshineWatchFaceService.this.getResources();
             boolean isRound = insets.isRound();
             float textSizeMax = resources.getDimension(R.dimen.digital_text_size_round);
             float textSizeMin = resources.getDimensionPixelSize(R.dimen.digital_text_size);
@@ -590,7 +590,7 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
             }
             mRegisteredTimeZoneReceiver = true;
             IntentFilter filter = new IntentFilter(Intent.ACTION_TIMEZONE_CHANGED);
-            SweepWatchFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
+            SunshineWatchFaceService.this.registerReceiver(mTimeZoneReceiver, filter);
         }
 
         private void unregisterReceiver() {
@@ -598,7 +598,7 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
                 return;
             }
             mRegisteredTimeZoneReceiver = false;
-            SweepWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
+            SunshineWatchFaceService.this.unregisterReceiver(mTimeZoneReceiver);
         }
     }
 }
