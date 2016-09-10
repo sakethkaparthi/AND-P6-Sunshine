@@ -16,51 +16,23 @@
             android:name="com.google.android.wearable"
             android:required="false" />
 
-        <!--<activity
-            android:name=".Sunshine"
-            android:label="@string/title_activity_main"
-            android:theme="@android:style/Theme.DeviceDefault.Light">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>-->
         <service
             android:name=".SweepWatchFaceService"
             android:label="@string/sweep_name"
-            android:permission="android.permission.BIND_WALLPAPER" >
-            <meta-data
-                android:name="android.service.wallpaper"
-                android:resource="@xml/watch_face" />
-            <meta-data
-                android:name="com.google.android.wearable.watchface.preview"
-                android:resource="@mipmap/ic_launcher" />
-            <meta-data
-                android:name="com.google.android.wearable.watchface.preview_circular"
-                android:resource="@mipmap/ic_launcher" />
-            <intent-filter>
-                <action android:name="android.service.wallpaper.WallpaperService" />
-
-                <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
-            </intent-filter>
-        </service>
-        <service
-            android:name=".SunshineWatchFace"
-            android:label="@string/watchface_name"
             android:permission="android.permission.BIND_WALLPAPER">
             <meta-data
                 android:name="android.service.wallpaper"
                 android:resource="@xml/watch_face" />
-           <!-- <meta-data
+            <meta-data
                 android:name="com.google.android.wearable.watchface.preview"
-                android:resource="@drawable/preview_analog" />
+                android:resource="@drawable/preview_square" />
             <meta-data
                 android:name="com.google.android.wearable.watchface.preview_circular"
-                android:resource="@drawable/preview_analog_circular" />-->
+                android:resource="@mipmap/ic_launcher" />
 
             <intent-filter>
                 <action android:name="android.service.wallpaper.WallpaperService" />
+
                 <category android:name="com.google.android.wearable.watchface.category.WATCH_FACE" />
             </intent-filter>
         </service>

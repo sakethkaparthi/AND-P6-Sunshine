@@ -20,23 +20,35 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.graphics.Palette;
 import android.support.wearable.watchface.CanvasWatchFaceService;
 import android.support.wearable.watchface.WatchFaceService;
 import android.support.wearable.watchface.WatchFaceStyle;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.view.WindowInsets;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.wearable.Asset;
+import com.google.android.gms.wearable.DataApi;
+import com.google.android.gms.wearable.DataEvent;
+import com.google.android.gms.wearable.DataEventBuffer;
+import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.MessageApi;
+import com.google.android.gms.wearable.Node;
+import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.Wearable;
+
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -44,7 +56,7 @@ import java.util.TimeZone;
  * Sample analog watch face with a sweep second hand. In ambient mode, the second hand isn't shown.
  * On devices with low-bit ambient mode, the hands are drawn without anti-aliasing in ambient mode.
  * The watch face is drawn with less contrast in mute mode.
- * <p/>
+ * <p>
  * {@link AnalogWatchFaceService} is similar but has a ticking second hand.
  */
 public class SweepWatchFaceService extends CanvasWatchFaceService {
@@ -58,6 +70,10 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
 
     private class Engine extends CanvasWatchFaceService.Engine {
 
+        private static final String WEATHER_PATH = "/weather";
+        private static final String WEATHER_TEMP_HIGH_KEY = "weather_temp_high_key";
+        private static final String WEATHER_TEMP_LOW_KEY = "weather_temp_low_key";
+        private static final String WEATHER_TEMP_ICON_KEY = "weather_temp_icon_key";
         private static final float HOUR_STROKE_WIDTH = 5f;
         private static final float MINUTE_STROKE_WIDTH = 3f;
         private static final float SECOND_TICK_STROKE_WIDTH = 2f;
@@ -73,10 +89,21 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
         private float mCenterX;
         private float mCenterY;
 
+        private int mHeight;
+        private int mWidth;
+
         private float mSecondHandLength;
         private float mMinuteHandLength;
         private float mHourHandLength;
 
+        float mXOffset;
+        float mYOffsetMax, mYOffsetMin;
+        float mLineHeight;
+
+        private String minString;
+        private String maxString;
+
+        private Bitmap weatherIcon;
         /* Colors for all hands (hour, minute, seconds, ticks) based on photo loaded. */
         private int mWatchHandColor;
         private int mWatchHandHighlightColor;
@@ -86,6 +113,8 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
         private Paint mMinutePaint;
         private Paint mSecondPaint;
         private Paint mTickAndCirclePaint;
+        private Paint mMaxTempPaint;
+        private Paint mMinTempPaint;
 
         private Paint mBackgroundPaint;
         //private Bitmap mBackgroundBitmap;
@@ -104,6 +133,58 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
                 invalidate();
             }
         };
+        private GoogleApiClient mGoogleApiClient;
+        DataApi.DataListener dataListener = new DataApi.DataListener() {
+            @Override
+            public void onDataChanged(DataEventBuffer dataEvents) {
+                Log.e(TAG, "onDataChanged(): " + dataEvents);
+
+                for (DataEvent event : dataEvents) {
+                    if (event.getType() == DataEvent.TYPE_CHANGED) {
+                        String path = event.getDataItem().getUri().getPath();
+                        if (WEATHER_PATH.equals(path)) {
+                            Log.e(TAG, "Data Changed for " + WEATHER_PATH);
+                            try {
+                                DataMapItem dataMapItem = DataMapItem.fromDataItem(event.getDataItem());
+                                minString = dataMapItem.getDataMap().getString(WEATHER_TEMP_HIGH_KEY);
+                                maxString = dataMapItem.getDataMap().getString(WEATHER_TEMP_LOW_KEY);
+                                final Asset photo = dataMapItem.getDataMap().getAsset(WEATHER_TEMP_ICON_KEY);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        weatherIcon = bitmapFromAsset(mGoogleApiClient, photo);
+                                    }
+                                }).start();
+
+                            } catch (Exception e) {
+                                Log.e(TAG, "Exception   ", e);
+                                weatherIcon = null;
+                            }
+
+                        } else {
+
+                            Log.e(TAG, "Unrecognized path:  \"" + path + "\"  \"" + WEATHER_PATH + "\"");
+                        }
+
+                    } else {
+                        Log.e(TAG, "Unknown data event type   " + event.getType());
+                    }
+                }
+            }
+
+            private Bitmap bitmapFromAsset(GoogleApiClient apiClient, Asset asset) {
+                if (asset == null) {
+                    throw new IllegalArgumentException("Asset must be non-null");
+                }
+                InputStream assetInputStream = Wearable.DataApi.getFdForAsset(apiClient, asset).await().getInputStream();
+
+                if (assetInputStream == null) {
+                    Log.w(TAG, "Requested an unknown Asset.");
+                    return null;
+                }
+                return BitmapFactory.decodeStream(assetInputStream);
+            }
+        };
 
         @Override
         public void onCreate(SurfaceHolder holder) {
@@ -118,6 +199,10 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
                     .setShowSystemUiTime(false)
                     .build());
 
+            Resources resources = SweepWatchFaceService.this.getResources();
+            mLineHeight = resources.getDimension(R.dimen.digital_line_height);
+            maxString = "NA";
+            minString = "NA";
             mBackgroundPaint = new Paint();
             mBackgroundPaint.setColor(ContextCompat.getColor(getApplicationContext(), R.color.blue_background));
             //mBackgroundBitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher);
@@ -175,6 +260,42 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
                     });
 */
             mCalendar = Calendar.getInstance();
+
+            mGoogleApiClient = new GoogleApiClient.Builder(getApplicationContext())
+                    .addApi(Wearable.API)
+                    .addConnectionCallbacks(new GoogleApiClient.ConnectionCallbacks() {
+                        @Override
+                        public void onConnected(Bundle bundle) {
+                            Log.e(TAG, "onConnected: Successfully connected to Google API client");
+                            Wearable.DataApi.addListener(mGoogleApiClient, dataListener);
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    NodeApi.GetConnectedNodesResult nodes = Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).await();
+                                    for (final Node node : nodes.getNodes()) {
+                                        MessageApi.SendMessageResult messageResult = Wearable.MessageApi.sendMessage(mGoogleApiClient, node.getId(), "/run_sync", null).await();
+                                        if (messageResult.getStatus().isSuccess()) {
+                                            Log.d("Sent to", node.getDisplayName());
+                                        }
+                                    }
+                                }
+                            }).start();
+
+                        }
+
+                        @Override
+                        public void onConnectionSuspended(int i) {
+                            Log.e(TAG, "onConnectionSuspended");
+                        }
+                    })
+                    .addOnConnectionFailedListener(new GoogleApiClient.OnConnectionFailedListener() {
+                        @Override
+                        public void onConnectionFailed(ConnectionResult connectionResult) {
+                            Log.e(TAG, "onConnectionFailed(): Failed to connect, with result : " + connectionResult);
+                        }
+                    })
+                    .build();
+            mGoogleApiClient.connect();
         }
 
         @Override
@@ -193,6 +314,25 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
             super.onTimeTick();
             invalidate();
         }
+
+        @Override
+        public void onApplyWindowInsets(WindowInsets insets) {
+            super.onApplyWindowInsets(insets);
+            Resources resources = SweepWatchFaceService.this.getResources();
+            boolean isRound = insets.isRound();
+            float textSizeMax = resources.getDimension(R.dimen.digital_text_size_round);
+            float textSizeMin = resources.getDimensionPixelSize(R.dimen.digital_text_size);
+            mMaxTempPaint = new Paint();
+            mMinTempPaint = new Paint();
+            mMaxTempPaint.setColor(Color.WHITE);
+            mMinTempPaint.setColor(Color.WHITE);
+            mMaxTempPaint.setTextSize(textSizeMax);
+            mMinTempPaint.setTextSize(textSizeMin);
+            mXOffset = mWidth - 2 * (mMaxTempPaint.measureText("12", 0, 2));
+            mYOffsetMax = (int) (mCenterY) - (mMaxTempPaint.getTextSize() / 2);
+            mYOffsetMin = (int) (mCenterY) + 2 * (mMaxTempPaint.getTextSize() / 2);
+        }
+
 
         @Override
         public void onAmbientModeChanged(boolean inAmbientMode) {
@@ -269,6 +409,8 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
             mCenterX = width / 2f;
             mCenterY = height / 2f;
 
+            mHeight = height;
+            mWidth = width;
             /*
              * Calculate lengths of different hands based on watch screen size.
              */
@@ -327,6 +469,10 @@ public class SweepWatchFaceService extends CanvasWatchFaceService {
                 canvas.drawColor(ContextCompat.getColor(getApplicationContext(), R.color.blue_background));
             }
 
+            canvas.drawText(maxString, mXOffset, mYOffsetMax, mMaxTempPaint);
+            canvas.drawText(minString, mXOffset, mYOffsetMin, mMinTempPaint);
+            if (weatherIcon != null)
+                canvas.drawBitmap(weatherIcon, weatherIcon.getWidth()/2, mCenterY - (weatherIcon.getHeight() / 2), null);
             /*else if (mAmbient) {
                 canvas.drawBitmap(mGrayBackgroundBitmap, 0, 0, mBackgroundPaint);
             } else {
